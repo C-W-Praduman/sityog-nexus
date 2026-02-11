@@ -13,6 +13,17 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const app = express();
 
+app.use(cors({
+  origin: [
+    "https://sityog-nexus-h9x2-90o5528tf-c-w-pradumans-projects.vercel.app/",
+    "http://localhost:5173"
+  ],
+  credentials: true
+}));
+
+
+
+app.use(express.json());
 
 // MongoDB Connection
 mongoose
@@ -24,8 +35,7 @@ mongoose
   });
 
 // Middleware
-app.use(cors());
-app.use(express.json());
+
 
 // Authentication Middleware
 const authenticateToken = (req, res, next) => {
