@@ -1,4 +1,4 @@
 // API Configuration - uses environment variable or defaults for production
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = 'localhost:3000'; // Default for development
 
 export default API_BASE_URL;
