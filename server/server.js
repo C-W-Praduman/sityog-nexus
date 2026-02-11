@@ -14,10 +14,16 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const app = express();
 
 app.use(cors({
-  origin: "https://sityog-nexus-h9x2-90o5528tf-c-w-pradumans-projects.vercel.app",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
+  origin: [
+    "https://sityog-nexus-h9x2-90o5528tf-c-w-pradumans-projects.vercel.app",
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
 }));
+
+
+app.options("*", cors());
 
 
 
