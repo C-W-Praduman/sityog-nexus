@@ -112,7 +112,9 @@ const RegisterPage = () => {
         toast.error("Account already exists. Please login.");
         navigate("/login");
       } else {
-        toast.error(error.response?.data?.error || "Registration failed");
+        const errorMsg = error.response?.data?.error || "Registration failed";
+        const details = error.response?.data?.details;
+        toast.error(details ? `${errorMsg} (${details})` : errorMsg);
       }
     } finally {
       setIsSubmitting(false);

@@ -33,7 +33,9 @@ const ForgotPasswordPage = () => {
             toast.success("Reset code sent to your email!");
             setStage('reset');
         } catch (error) {
-            toast.error(error.response?.data?.error || "Failed to send reset code");
+            const errorMsg = error.response?.data?.error || "Failed to send reset code";
+            const details = error.response?.data?.details;
+            toast.error(details ? `${errorMsg} (${details})` : errorMsg);
         } finally {
             setIsSubmitting(false);
         }
