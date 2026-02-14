@@ -13,18 +13,7 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const app = express();
 
-app.use(cors({
-  origin: [
-    "https://sityog-nexus-h9x2-90o5528tf-c-w-pradumans-projects.vercel.app/",
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-}));
-
-
-app.options("*", cors());
-
+app.use(cors());
 
 
 app.use(express.json());
@@ -205,4 +194,8 @@ app.delete("/api/deletenote/:id", authenticateToken, async (req, res) => {
 })
 
 // Start server
-module.exports = app;
+// module.exports = app;
+
+app.listen(3000, () => {
+  console.log(`Server running on port ${process.env.PORT || 3000}`);
+});
