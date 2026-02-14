@@ -48,8 +48,15 @@ exports.register = async (req, res) => {
         );
 
         // 6. Send OTP Email
-        // Note: In production, handle if email fails to send
-        await sendOTPEmail(email, otpCode);
+        try {
+            await sendOTPEmail(email, otpCode);
+        } catch (mailErr) {
+            console.error('Registration Email Error:', mailErr);
+            return res.status(500).json({ 
+                error: 'Could not send verification email. Please check if your email service is configured correctly.',
+                details: mailErr.message 
+            });
+        }
 
         res.status(200).json({ message: 'OTP sent to email. Please verify.' });
 
@@ -162,7 +169,17 @@ exports.forgotPassword = async (req, res) => {
             { upsert: true }
         );
 
-        await sendResetEmail(email, otpCode);
+        try {
+            await sendResetEmail(email, otpCode);
+        } catch (mailErr) {
+            console.error('Reset Email Error:', mailErr);
+            // We still return 200/Success to not leak user existence, or we can be honest if it's a server error.
+            // For now, let's be honest about the mail service failure.
+            return res.status(500).json({ 
+                error: 'Could not send reset code. Please try again later.',
+                details: mailErr.message
+            });
+        }
 
         res.status(200).json({ message: 'Reset code sent to your email.' });
 
