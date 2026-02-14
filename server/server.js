@@ -13,7 +13,12 @@ const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin:"https://sityog-nexus.vercel.app/",
+  credentials: true,
+
+}));
+
 
 
 app.use(express.json());
@@ -63,6 +68,11 @@ const storage = new CloudinaryStorage({
 const upload = multer({ storage });
 
 // Routes
+
+app.get("/", (req, res) => {
+  res.send("Welcome to the Nexus Notes API");
+});
+
 
 // GET /api/notes - List all notes
 app.get("/api/notes", async (req, res) => {
