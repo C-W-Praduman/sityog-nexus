@@ -4,21 +4,29 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 587,
-    secure: false, // Use STARTTLS (standard for cloud providers)
+    secure: false, // Use STARTTLS
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: (process.env.EMAIL_USER || "").trim(),
+        pass: (process.env.EMAIL_PASS || "").trim()
     },
-    // timeouts to prevent long hangs
-    connectionTimeout: 15000, 
-    greetingTimeout: 15000,
-    socketTimeout: 20000
+    // timeouts
+    connectionTimeout: 20000, 
+    greetingTimeout: 20000,
+    socketTimeout: 30000,
+    debug: true, // Show debug output
+    logger: true // Log to console
 });
 
-// Verify transporter on startup
+// Verify environment variables & transporter
+console.log('--- Email Service Diagnostics ---');
+console.log('EMAIL_USER defined:', !!process.env.EMAIL_USER);
+console.log('EMAIL_PASS defined:', !!process.env.EMAIL_PASS);
+if (process.env.EMAIL_PASS) console.log('EMAIL_PASS length:', process.env.EMAIL_PASS.length);
+
 transporter.verify((error, success) => {
     if (error) {
         console.error('✗ Email Transporter Error:', error.message);
+        console.error('Full Error Object:', JSON.stringify(error, null, 2));
     } else {
         console.log('✓ Email Transporter is ready');
     }
