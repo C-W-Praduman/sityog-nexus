@@ -3,46 +3,36 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const nodemailer = require('nodemailer');
 
 async function testEmail() {
-    console.log('--- Email Configuration Test ---');
+    console.log('--- Nodemailer Configuration Test ---');
     console.log('EMAIL_USER:', process.env.EMAIL_USER);
-    console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? '******** (Hidden)' : 'MISSING');
-
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-        console.error('✗ Error: EMAIL_USER or EMAIL_PASS environment variables are missing.');
-        process.exit(1);
-    }
+    console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? 'Detecting pass...' : 'MISSING');
 
     const transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
         port: 587,
-        secure: false, // Use STARTTLS
+        secure: false,
         auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
+            user: (process.env.EMAIL_USER || "").trim(),
+            pass: (process.env.EMAIL_PASS || "").trim()
         },
         connectionTimeout: 15000
     });
 
-    console.log('Verifying connection...');
     try {
+        console.log('Verifying connection...');
         await transporter.verify();
         console.log('✓ Success: Connection to SMTP server is established.');
         
-        console.log('Sending test email to', process.env.EMAIL_USER, '...');
+        console.log('Sending test email...');
         const info = await transporter.sendMail({
             from: `"Nexus Test" <${process.env.EMAIL_USER}>`,
             to: process.env.EMAIL_USER,
-            subject: 'Nexus Email Test',
-            text: 'If you received this, your email configuration is working correctly!'
+            subject: 'Nexus Rollback Test',
+            text: 'Nodemailer rollback is successful!'
         });
         console.log('✓ Success: Test email sent!', info.messageId);
     } catch (error) {
-        console.error('✗ Failed: Email testing failed.');
-        console.error('Error details:', error.message);
-        console.log('\n--- Troubleshooting Tips ---');
-        console.log('1. Ensure you are using a Gmail APP PASSWORD (16 characters), not your regular password.');
-        console.log('2. Check if the EMAIL_USER matches your Gmail address.');
-        console.log('3. Ensure your internet connection is stable.');
+        console.error('✗ Failed:', error.message);
     }
 }
 

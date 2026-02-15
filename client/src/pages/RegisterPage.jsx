@@ -174,8 +174,8 @@ const RegisterPage = () => {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/10 blur-[120px]"></div>
       </div>
 
-      <div className="max-w-md w-full z-10">
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
+      <div className="max-w-lg w-full z-10">
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl ">
           {stage === "register" ? (
             /* --- STAGE 1: ACCOUNT DETAILS --- */
             <>
