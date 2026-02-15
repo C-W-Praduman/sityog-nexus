@@ -8,7 +8,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const sendOTPEmail = async (to, otp) => {
     try {
         const response = await resend.emails.send({
-            from: "Nexus <onboarding@resend.dev>", // change after domain verify
+            from: "onboarding@resend.dev", // change after domain verify
             to,
             subject: "Verify Your Email - Nexus",
             html: `
