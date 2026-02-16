@@ -3,7 +3,6 @@ const express = require("express");
 const multer = require("multer");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const jwt = require("jsonwebtoken");
 const Note = require("./models/Note");
 const User = require("./models/User");
 
@@ -17,8 +16,6 @@ app.use(cors({
   origin: ["https://sityog-nexus.vercel.app", "http://localhost:5173", "http://localhost:3000"],
   credentials: true,
 }));
-
-
 
 app.use(express.json());
 
@@ -34,8 +31,10 @@ mongoose
 // Middleware
 
 
+const admin = require("./config/firebase");
+
 // Authentication Middleware
-const authenticateToken = (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
@@ -44,11 +43,44 @@ const authenticateToken = (req, res, next) => {
   }
 
   try {
-    const verified = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = verified;
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    // Find the user in our database using the Firebase UID or email
+    let user = await User.findOne({ 
+      $or: [
+        { firebaseUid: decodedToken.uid },
+        { email: decodedToken.email.toLowerCase() }
+      ]
+    });
+
+    if (!user) {
+       // If user doesn't exist in DB but has valid Firebase token, we could sync them here or reject
+       // For now, let's reject and expect /sync-user to have been called
+       return res.status(404).json({ error: "User not found in database. Please register." });
+    }
+
+    if (user.isBlocked) {
+       return res.status(403).json({ error: "Your account has been blocked. Please contact the administrator." });
+    }
+
+    req.user = {
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      uid: decodedToken.uid
+    };
     next();
   } catch (err) {
-    res.status(400).json({ error: "Invalid token" });
+    console.error("Auth Error:", err);
+    res.status(403).json({ error: "Invalid or expired token" });
+  }
+};
+
+const isHost = (req, res, next) => {
+  if (req.user && (req.user.role === 'host' || req.user.role === 'admin')) {
+    next();
+  } else {
+    res.status(403).json({ error: "Access denied. Host privileges required." });
   }
 };
 
@@ -133,74 +165,209 @@ app.post(
 );
 
 // --- AUTH ROUTES ---
-const authController = require("./controllers/authController");
-const {
-  validateRegister,
-  validateLogin,
-  validateVerifyOTP,
-  validateForgotPassword,
-  validateResetPassword,
-} = require("./middleware/authValidation");
+// const authController = require("./controllers/authController");
 
-// Register (Step 1)
-app.post("/api/auth/register", validateRegister, authController.register);
-
-// Verify OTP (Step 2)
-app.post("/api/auth/verify-otp", validateVerifyOTP, authController.verifyOTP);
-
-// Login
-app.post("/api/auth/login", validateLogin, authController.login);
+// Note: Firebase handles authentication (register, login, password reset)
 
 // Get current authenticated user profile
-app.get('/api/auth/me', authenticateToken, authController.getProfile);
+app.get('/api/auth/me', authenticateToken, (req, res) => {
+  res.status(200).json({ user: req.user });
+});
 
-// Update current user profile
-app.put('/api/auth/me', authenticateToken, authController.updateProfile);
-
-// Forgot Password
-app.post(
-  "/api/auth/forgot-password",
-  validateForgotPassword,
-  authController.forgotPassword,
-);
-
-// Reset Password
-app.post(
-  "/api/auth/reset-password",
-  validateResetPassword,
-  authController.resetPassword,
-);
-
-// deleting api for the notes as host can delete the notes
-
-app.delete("/api/deletenote/:id", authenticateToken, async (req, res) => {
-  
+// Update user profile (Firebase users)
+app.put('/api/user/profile', authenticateToken, async (req, res) => {
   try {
+    const { name, mobile, rollNo, branch, semester } = req.body;
+    const userId = req.user.id;
+    
+    const update = {};
+    if (name !== undefined) update.name = name;
+    if (mobile !== undefined) update.mobile = mobile;
+    if (rollNo !== undefined) update.rollNo = rollNo;
+    if (branch !== undefined) update.branch = branch;
+    if (semester !== undefined) update.semester = semester;
+    
+    const updated = await User.findByIdAndUpdate(
+      userId,
+      update,
+      { new: true }
+    ).select('-password');
+    
+    if (!updated) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    res.status(200).json({ user: updated });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
 
-    // Role check
-    if (req.user.role !== "host") {
-      return res.status(403).json({ error: "Access denied" });
+// Sync Firebase user with database
+app.post('/api/auth/sync-user', async (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
     }
 
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    const { uid, email } = decodedToken;
+    const { name } = req.body; // Name might come from client if not in token
+    
+    // Find or create user
+    let user = await User.findOne({ 
+      $or: [
+        { firebaseUid: uid },
+        { email: email.toLowerCase() }
+      ]
+    });
+    
+    if (!user) {
+      user = new User({
+        name: name || decodedToken.name || email.split('@')[0],
+        email: email.toLowerCase(),
+        password: 'FIREBASE_AUTH',
+        isVerified: true,
+        firebaseUid: uid
+      });
+    } else {
+      if (name) user.name = name;
+      user.firebaseUid = uid;
+      user.isVerified = true;
+    }
+    
+    const savedUser = await user.save();
+    
+    res.status(200).json({ 
+      user: {
+        id: savedUser._id,
+        name: savedUser.name,
+        email: savedUser.email,
+        role: savedUser.role,
+        branch: savedUser.branch,
+        semester: savedUser.semester,
+        mobile: savedUser.mobile,
+        rollNo: savedUser.rollNo
+      }
+    });
+  } catch (err) {
+    console.error('Sync user error:', err);
+    res.status(500).json({ error: 'Failed to sync user' });
+  }
+});
+
+// Firebase handles password reset via sendPasswordResetEmail
+
+// deleting api for the notes as host can delete the notes
+app.delete("/api/deletenote/:id", authenticateToken, isHost, async (req, res) => {
+  try {
     const note = await Note.findById(req.params.id);
     if (!note) {
       return res.status(404).json({ error: "Note not found" });
     }
 
     // Delete from Cloudinary
-    await cloudinary.uploader.destroy(note.publicId, {
-      resource_type: "raw",
-    });
+    if (note.publicId) {
+      await cloudinary.uploader.destroy(note.publicId, {
+        resource_type: "raw",
+      });
+    }
 
     // Delete from MongoDB
     await Note.findByIdAndDelete(req.params.id);
 
     res.json({ message: "Note deleted successfully" });
   } catch (err) {
+    console.error("Delete note error:", err);
     res.status(500).json({ error: "Failed to delete note" });
   }
+});
 
-})
+// Admin User Management Routes
+app.get('/api/admin/users', authenticateToken, isHost, async (req, res) => {
+  try {
+    const users = await User.find().select('-password');
+    res.status(200).json({ users });
+  } catch (err) {
+    console.error('Fetch users error:', err);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+app.put('/api/admin/users/:id/block', authenticateToken, isHost, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    user.isBlocked = !user.isBlocked;
+    await user.save();
+    
+    res.status(200).json({ message: `User ${user.isBlocked ? 'blocked' : 'unblocked'} successfully`, user });
+  } catch (err) {
+    console.error('Block user error:', err);
+    res.status(500).json({ error: 'Failed to toggle block status' });
+  }
+});
+
+app.delete('/api/admin/users/:id', authenticateToken, isHost, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    // Also delete user from Firebase if possible (optional but recommended)
+    try {
+      if (user.firebaseUid) {
+        await admin.auth().deleteUser(user.firebaseUid);
+      }
+    } catch (fbErr) {
+      console.error('Firebase delete user error:', fbErr);
+      // Continue deleting from MongoDB even if Firebase deletion fails
+    }
+    
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (err) {
+    console.error('Delete user error:', err);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
+app.get('/api/admin/users/:id', authenticateToken, isHost, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.status(200).json({ user });
+  } catch (err) {
+    console.error('Fetch user detail error:', err);
+    res.status(500).json({ error: 'Failed to fetch user details' });
+  }
+});
+
+app.put('/api/admin/users/:id', authenticateToken, isHost, async (req, res) => {
+  try {
+    const { name, mobile, rollNo, branch, semester, role } = req.body;
+    
+    // Prevent unprivileged role escalation or modification of self/other hosts if needed
+    // For now, assume host is trusted
+    
+    const updated = await User.findByIdAndUpdate(
+      req.params.id,
+      { name, mobile, rollNo, branch, semester, role },
+      { new: true }
+    ).select('-password');
+    
+    if (!updated) return res.status(404).json({ error: 'User not found' });
+    
+    res.status(200).json({ message: 'User updated successfully', user: updated });
+  } catch (err) {
+    console.error('Update user detail error:', err);
+    res.status(500).json({ error: 'Failed to update user' });
+  }
+});
 
 // Start server
 // module.exports = app;

@@ -23,7 +23,7 @@ const Filters = ({
             <button
               key={b}
               onClick={() => onBranchChange(b)}
-              className={`py-3 sm:py-3.5 rounded-xl text-xs sm:text-sm font-black border transition-all ${
+              className={`py-3 sm:py-3.5 rounded-xl text-xs sm:text-sm font-black border transition-all cursor-pointer ${
                 selectedBranch === b
                   ? "bg-blue-600 text-white border-blue-400"
                   : "bg-white/5 text-gray-400 border-white/10 hover:bg-white/10"
@@ -50,7 +50,7 @@ const Filters = ({
             <button
               key={value}
               onClick={() => onSemesterChange(value)}
-              className={`py-3 sm:py-3.5 rounded-xl text-xs sm:text-sm font-black border transition-all ${
+              className={`py-3 sm:py-3.5 rounded-xl text-xs sm:text-sm font-black border transition-all cursor-pointer ${
                 selectedSemester === value
                   ? "bg-blue-600 text-white border-blue-400"
                   : "bg-white/5 text-gray-400 border-white/10 hover:bg-white/10"

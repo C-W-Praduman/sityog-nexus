@@ -1,62 +1,90 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { auth } from '../config/firebase';
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged,
+  updateProfile,
+  sendPasswordResetEmail
+} from 'firebase/auth';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 import API_BASE_URL from '../config/api';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [token, setToken] = useState(localStorage.getItem('token') || null);
+    const [token, setToken] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // Listen to Firebase auth state changes
     useEffect(() => {
-        if (token) {
-            // In a real app, you might verify the token with the backend here
-            // For now, we'll just parse the user from the token if you want, 
-            // or trust the localStorage for initial load.
-            const savedUser = localStorage.getItem('user');
-            if (savedUser) {
-                setUser(JSON.parse(savedUser));
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            if (firebaseUser) {
+                try {
+                    const idToken = await firebaseUser.getIdToken();
+                    setToken(idToken);
+                    
+                    // Sync user with backend using the ID token for authentication
+                    const response = await axios.post(`${API_BASE_URL}/api/auth/sync-user`, 
+                        { name: firebaseUser.displayName || firebaseUser.email.split('@')[0] },
+                        { headers: { Authorization: `Bearer ${idToken}` } }
+                    );
+                    
+                    // Merge only essential properties to avoid circular references and keep state clean
+                    const fullUser = { 
+                        ...response.data.user,
+                        uid: firebaseUser.uid,
+                        photoURL: firebaseUser.photoURL,
+                        emailVerified: firebaseUser.emailVerified
+                    };
+                    setUser(fullUser);
+                    localStorage.setItem('user', JSON.stringify(response.data.user));
+                    localStorage.setItem('token', idToken); // Backup for some pages using localStorage
+                } catch (err) {
+                    console.error('Failed to sync user:', err);
+                    // Even if backend sync fails, keep a minimal user object from Firebase so UI functions
+                    setUser({
+                        name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+                        email: firebaseUser.email,
+                        uid: firebaseUser.uid,
+                        isSyncing: false,
+                        syncError: true
+                    });
+                    toast.error('Session sync failed. Some features may be limited.');
+                }
+            } else {
+                setUser(null);
+                setToken(null);
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
             }
-        }
-        setLoading(false);
-    }, [token]);
+            setLoading(false);
+        });
 
-    const login = async (email, password) => {
-        const response = await axios.post(`${API_BASE_URL}/api/auth/login`, { email, password });
-        const { token, user } = response.data;
-        
-        setToken(token);
-        setUser(user);
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        return () => unsubscribe();
+    }, []);
+
+    const register = async (email, password) => {
+        await createUserWithEmailAndPassword(auth, email, password);
+        // The onAuthStateChanged listener will handle the backend sync
         return { success: true };
     };
 
-    const register = async (name, email, password) => {
-        const response = await axios.post(`${API_BASE_URL}/api/auth/register`, { name, email, password });
-        return response.data; // Now returns { message: 'OTP sent...' }
-    };
-
-    const verifyOTP = async (email, otp) => {
-        const response = await axios.post(`${API_BASE_URL}/api/auth/verify-otp`, { email, otp });
-        return response.data;
+    const login = async (email, password) => {
+        await signInWithEmailAndPassword(auth, email, password);
     };
 
     const forgotPassword = async (email) => {
-        const response = await axios.post(`${API_BASE_URL}/api/auth/forgot-password`, { email });
-        return response.data;
+        await sendPasswordResetEmail(auth, email);
     };
 
-    const resetPassword = async (email, otp, newPassword) => {
-        const response = await axios.post(`${API_BASE_URL}/api/auth/reset-password`, { email, otp, newPassword });
-        return response.data;
-    };
-
-    const logout = () => {
-        setToken(null);
+    const logout = async () => {
+        await signOut(auth);
         setUser(null);
-        localStorage.removeItem('token');
+        setToken(null);
         localStorage.removeItem('user');
     };
 
@@ -65,11 +93,9 @@ export const AuthProvider = ({ children }) => {
             user, 
             setUser,
             token, 
-            login, 
             register, 
-            verifyOTP, 
-            forgotPassword, 
-            resetPassword, 
+            login, 
+            forgotPassword,
             logout, 
             loading 
         }}>

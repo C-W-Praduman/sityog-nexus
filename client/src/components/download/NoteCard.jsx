@@ -17,13 +17,12 @@ const NoteCard = ({ note,  onPreview , currentUser, handleDelete }) => (
       </span>
      </div>
 
-      <div>
-        {currentUser?.role === "host" && (
-  <button onClick={() => handleDelete(note)} className=" px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 cursor-pointer text-[13px] hover:bg-purple-500/20 transition-all ">
-    delete
-  </button>
-)}
-
+       <div>
+        {(currentUser?.role === "host" || currentUser?.role === "admin") && (
+          <button onClick={() => handleDelete(note)} className=" px-3 py-1 rounded-full bg-red-500/10 text-red-500 border border-red-500/20 cursor-pointer text-[13px] hover:bg-red-500/20 transition-all ">
+            delete
+          </button>
+        )}
       </div>
     </div>
 

@@ -81,7 +81,7 @@ const FAQItem = ({ question, answer }) => {
     <div className={`mb-4 transition-all duration-500 overflow-hidden ${isOpen ? 'bg-white/10' : 'bg-white/5'} backdrop-blur-md rounded-2xl border ${isOpen ? 'border-blue-500/50' : 'border-white/10'} hover:border-blue-400/30 group`}>
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex justify-between items-center p-6 text-left focus:outline-none"
+        className="w-full flex justify-between items-center p-6 text-left focus:outline-none cursor-pointer"
       >
         <span className={`text-lg sm:text-xl font-bold transition-colors duration-300 ${isOpen ? 'text-blue-400' : 'text-white'} group-hover:text-blue-300`}>
           {question}
@@ -129,7 +129,7 @@ function LandingPage() {
             <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 sm:gap-6 pt-4">
               <Link 
                 to="/upload" 
-                className="group relative px-6 py-4 sm:px-10 sm:py-5 bg-blue-600 text-white font-black rounded-2xl shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_50px_rgba(37,99,235,0.6)] hover:bg-blue-500 transition-all duration-300 hover:-translate-y-2 text-center"
+                className="group relative px-6 py-4 sm:px-10 sm:py-5 bg-blue-600 text-white font-black rounded-2xl shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_50px_rgba(37,99,235,0.6)] hover:bg-blue-500 transition-all duration-300 hover:-translate-y-2 text-center cursor-pointer"
               >
                 <span className="relative z-10 flex items-center justify-center gap-3">
                   <FaFileUpload className="text-xl sm:text-2xl" /> SHARE KNOWLEDGE
@@ -137,7 +137,7 @@ function LandingPage() {
               </Link>
               <Link 
                 to="/download" 
-                className="group px-6 py-4 sm:px-10 sm:py-5 bg-white/5 text-white font-black rounded-2xl border-2 border-white/10 backdrop-blur-md hover:bg-white/10 transition-all duration-300 hover:-translate-y-2 flex items-center justify-center gap-3 text-center"
+                className="group px-6 py-4 sm:px-10 sm:py-5 bg-white/5 text-white font-black rounded-2xl border-2 border-white/10 backdrop-blur-md hover:bg-white/10 transition-all duration-300 hover:-translate-y-2 flex items-center justify-center gap-3 text-center cursor-pointer"
               >
                 <FaDownload className="text-lg sm:text-xl group-hover:animate-bounce" /> ACCESS VAULT
               </Link>
@@ -373,13 +373,13 @@ function LandingPage() {
             <div className="flex flex-col sm:flex-row justify-center gap-4 sm:gap-8 pt-6">
               <Link 
                 to="/upload" 
-                className="px-8 sm:px-14 py-4 sm:py-6 bg-linear-to-r from-blue-600 to-indigo-700 text-white font-black rounded-2xl sm:rounded-3xl hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_0_40px_rgba(37,99,235,0.3)] uppercase tracking-widest text-base sm:text-lg text-center"
+                className="px-8 sm:px-14 py-4 sm:py-6 bg-linear-to-r from-blue-600 to-indigo-700 text-white font-black rounded-2xl sm:rounded-3xl hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_0_40px_rgba(37,99,235,0.3)] uppercase tracking-widest text-base sm:text-lg text-center cursor-pointer"
               >
                 Upload Artifact
               </Link>
               <Link 
                 to="/download" 
-                className="px-8 sm:px-14 py-4 sm:py-6 bg-white/5 text-white font-black rounded-2xl sm:rounded-3xl border-2 border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105 uppercase tracking-widest text-base sm:text-lg backdrop-blur-xl text-center"
+                className="px-8 sm:px-14 py-4 sm:py-6 bg-white/5 text-white font-black rounded-2xl sm:rounded-3xl border-2 border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105 uppercase tracking-widest text-base sm:text-lg backdrop-blur-xl text-center cursor-pointer"
               >
                 Explore Vault
               </Link>

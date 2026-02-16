@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        required: false,
         minlength: 6
     },
     isVerified: {
@@ -24,8 +24,12 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['user', 'admin'],
+        enum: ['user', 'admin', 'host'],
         default: 'user'
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false
     },
     // Optional profile fields
     mobile: {
@@ -48,6 +52,13 @@ const userSchema = new mongoose.Schema({
         min: 1,
         max: 12,
         default: null
+    },
+    // Firebase authentication
+    firebaseUid: {
+        type: String,
+        unique: true,
+        sparse: true,
+        trim: true
     },
     createdAt: {
         type: Date,

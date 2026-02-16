@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
 import API_BASE_URL from "../config/api";
@@ -14,12 +15,12 @@ const DownloadPage = () => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [user, setUser] = useState("user");
+  const [userProfile, setUserProfile] = useState(null);
+  const { token, user } = useAuth();
 
   useEffect(() => {
-    const currentUser = JSON.parse(localStorage.getItem("user"));
-    setUser(currentUser);
-  }, []);
+    setUserProfile(user);
+  }, [user]);
   const selectedBranch = searchParams.get("branch") || "Common";
   const selectedSemester = searchParams.get("semester") || "1";
 
@@ -89,9 +90,6 @@ const DownloadPage = () => {
   if (!window.confirm("Are you sure you want to delete this note?")) return;
 
   try {
-    const token = localStorage.getItem("token");
-
-
     const res = await fetch(
       `${API_BASE_URL}/api/deletenote/${note._id}`,
       {
@@ -141,7 +139,7 @@ const DownloadPage = () => {
           <NotesGrid
             notes={notes}
             onPreview={handlePreview}
-            currentUser={user}
+            currentUser={userProfile}
             handleDelete={handleDelete}
           />
         )}

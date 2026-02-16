@@ -32,8 +32,8 @@ const AboutPage = () => {
           <h4 className="font-semibold mb-2">Get Involved</h4>
           <p className="text-gray-300 text-sm mb-4">If you have notes or past questions that helped you study, consider uploading them to help your classmates. Use the Upload page (requires sign-in) to contribute.</p>
           <div className="flex gap-3">
-            <a href="/upload" className="inline-block px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded text-white text-sm">Upload Notes</a>
-            <a href="/download" className="inline-block px-4 py-2 border border-gray-600 rounded text-gray-200 text-sm hover:border-blue-400">Browse Notes</a>
+            <a href="/upload" className="inline-block px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded text-white text-sm cursor-pointer">Upload Notes</a>
+            <a href="/download" className="inline-block px-4 py-2 border border-gray-600 rounded text-gray-200 text-sm hover:border-blue-400 cursor-pointer">Browse Notes</a>
           </div>
         </div>
       </div>

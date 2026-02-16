@@ -8,6 +8,8 @@ import UploadPage from './pages/UploadPage';
 import DownloadPage from './pages/DownloadPage';
 import AboutPage from './pages/AboutPage';
 import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import UserDetailPage from './pages/UserDetailPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -21,6 +23,18 @@ const ProtectedRoute = ({ children }) => {
   
   if (!token) {
     return <Navigate to="/login" />;
+  }
+  
+  return children;
+};
+
+const HostRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) return null;
+  
+  if (!user || (user.role !== 'host' && user.role !== 'admin')) {
+    return <Navigate to="/" />;
   }
   
   return children;
@@ -70,6 +84,22 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+              <Route 
+                path="/admin" 
+                element={
+                  <HostRoute>
+                    <AdminDashboard />
+                  </HostRoute>
+                } 
+              />
+              <Route 
+                path="/admin/users/:id" 
+                element={
+                  <HostRoute>
+                    <UserDetailPage />
+                  </HostRoute>
+                } 
+              />
             </Routes>
           </main>
           <Footer />

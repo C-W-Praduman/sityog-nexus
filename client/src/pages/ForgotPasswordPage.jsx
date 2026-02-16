@@ -1,27 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FaChevronLeft, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaChevronLeft, FaPaperPlane } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
 const ForgotPasswordPage = () => {
-    const [stage, setStage] = useState('email'); // 'email' or 'reset'
     const [email, setEmail] = useState('');
-    const [otp, setOtp] = useState(['', '', '', '', '', '']);
-    const [newPassword, setNewPassword] = useState('');
-    const [confirmPassword, setConfirmPassword] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSent, setIsSent] = useState(false);
     
-    const { forgotPassword, resetPassword } = useAuth();
+    const { forgotPassword } = useAuth();
     const navigate = useNavigate();
-    const otpRefs = useRef([]);
-
-    useEffect(() => {
-        if (stage === 'reset' && otpRefs.current[0]) {
-            otpRefs.current[0].focus();
-        }
-    }, [stage]);
 
     const handleEmailSubmit = async (e) => {
         e.preventDefault();
@@ -30,48 +19,12 @@ const ForgotPasswordPage = () => {
         setIsSubmitting(true);
         try {
             await forgotPassword(email);
-            toast.success("Reset code sent to your email!");
-            setStage('reset');
+            toast.success("Reset link sent to your email!");
+            setIsSent(true);
         } catch (error) {
-            const errorMsg = error.response?.data?.error || "Failed to send reset code";
-            const details = error.response?.data?.details;
-            toast.error(details ? `${errorMsg} (${details})` : errorMsg);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleOtpChange = (index, value) => {
-        const digit = value.length > 1 ? value.substring(value.length - 1) : value;
-        if (!/^\d*$/.test(digit)) return;
-
-        const newOtp = [...otp];
-        newOtp[index] = digit;
-        setOtp(newOtp);
-
-        if (digit && index < 5) otpRefs.current[index + 1].focus();
-    };
-
-    const handleOtpKeyDown = (index, e) => {
-        if (e.key === 'Backspace' && !otp[index] && index > 0) {
-            otpRefs.current[index - 1].focus();
-        }
-    };
-
-    const handleResetSubmit = async (e) => {
-        e.preventDefault();
-        const fullOtp = otp.join('');
-        if (fullOtp.length < 6) return toast.error("Enter full code");
-        if (newPassword !== confirmPassword) return toast.error("Passwords mismatch");
-        if (newPassword.length < 8) return toast.error("Password too short");
-
-        setIsSubmitting(true);
-        try {
-            await resetPassword(email, fullOtp, newPassword);
-            toast.success("Password reset successfully! Login now.");
-            navigate('/login');
-        } catch (error) {
-            toast.error(error.response?.data?.error || "Reset failed");
+            console.error("Forgot PW Error:", error);
+            const errorMsg = error.message || "Failed to send reset code";
+            toast.error(errorMsg);
         } finally {
             setIsSubmitting(false);
         }
@@ -85,15 +38,15 @@ const ForgotPasswordPage = () => {
 
             <div className="max-w-md w-full z-10">
                 <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl">
-                    <Link to="/login" className="mb-6 flex items-center text-sm text-gray-400 hover:text-white transition-colors">
+                    <Link to="/login" className="mb-6 flex items-center text-sm text-gray-400 hover:text-white transition-colors cursor-pointer">
                         <FaChevronLeft className="mr-2" size={12} /> Back to Login
                     </Link>
 
-                    {stage === 'email' ? (
+                    {!isSent ? (
                         <>
                             <div className="mb-8">
                                 <h1 className="text-2xl font-bold text-white mb-2">Forgot Password?</h1>
-                                <p className="text-gray-400">Enter your email and we'll send you a reset code.</p>
+                                <p className="text-gray-400">Enter your email and we'll send you a link to reset your password.</p>
                             </div>
                             <form onSubmit={handleEmailSubmit} className="space-y-4">
                                 <input
@@ -107,66 +60,33 @@ const ForgotPasswordPage = () => {
                                 <button
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-all"
+                                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
                                 >
-                                    {isSubmitting ? 'Sending...' : 'Send Reset Code'}
+                                    {isSubmitting ? 'Sending...' : (
+                                        <>
+                                            <FaPaperPlane size={14} /> Send Reset Link
+                                        </>
+                                    )}
                                 </button>
                             </form>
                         </>
                     ) : (
-                        <>
-                            <div className="mb-8">
-                                <h1 className="text-2xl font-bold text-white mb-2">Create New Password</h1>
-                                <p className="text-gray-400">Enter the code sent to your email.</p>
+                        <div className="text-center py-4">
+                            <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <FaPaperPlane className="text-blue-500" size={24} />
                             </div>
-                            <form onSubmit={handleResetSubmit} className="space-y-6">
-                                <div className="flex justify-between gap-2 sm:gap-3">
-                                    {otp.map((data, index) => (
-                                        <input
-                                            key={index}
-                                            type="text"
-                                            inputMode="numeric"
-                                            maxLength={1}
-                                            ref={(el) => (otpRefs.current[index] = el)}
-                                            value={data}
-                                            onChange={(e) => handleOtpChange(index, e.target.value)}
-                                            onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                                            className="h-14 w-14 sm:h-16 sm:w-16 text-center text-xl sm:text-2xl font-bold bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all focus:border-blue-500/50"
-                                        />
-                                    ))}
-                                </div>
-                                <div className="space-y-4">
-                                    <div className="relative">
-                                        <input
-                                            type={showPassword ? "text" : "password"}
-                                            required
-                                            value={newPassword}
-                                            onChange={(e) => setNewPassword(e.target.value)}
-                                            placeholder="New Password"
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none"
-                                        />
-                                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
-                                            {showPassword ? <FaEyeSlash /> : <FaEye />}
-                                        </button>
-                                    </div>
-                                    <input
-                                        type="password"
-                                        required
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        placeholder="Confirm New Password"
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none"
-                                    />
-                                </div>
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-all"
-                                >
-                                    {isSubmitting ? 'Resetting...' : 'Reset Password'}
-                                </button>
-                            </form>
-                        </>
+                            <h1 className="text-2xl font-bold text-white mb-4">Check Your Email</h1>
+                            <p className="text-gray-400 mb-8">
+                                We've sent a password reset link to <span className="text-white font-medium">{email}</span>. 
+                                Please check your inbox and follow the instructions.
+                            </p>
+                            <button
+                                onClick={() => navigate('/login')}
+                                className="w-full bg-white/10 hover:bg-white/20 text-white font-semibold py-3 rounded-xl transition-all cursor-pointer"
+                            >
+                                Return to Login
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>

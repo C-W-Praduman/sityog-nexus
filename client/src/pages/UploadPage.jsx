@@ -4,6 +4,7 @@ import { FaFileUpload, FaArrowLeft, FaRocket } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
 import API_BASE_URL from "../config/api";
+import { useEffect } from "react";
 
 function UploadPage() {
   const [title, setTitle] = useState("");
@@ -110,7 +111,7 @@ function UploadPage() {
         setTimeout(() => {
           setUploading(false);
           setProgress(0);
-          navigate(`/download?branch=${branch}&semester=${semester}`);
+          // navigate(`/download?branch=${branch}&semester=${semester}`);
         }, 300);
       } else {
         toast.error("Upload failed. Please try again.");
@@ -132,6 +133,32 @@ function UploadPage() {
     xhr.send(formData);
   };
 
+  const handleBranchChange = (e) => {
+    setBranch(e.target.value);
+    localStorage.setItem("branch", e.target.value);
+    if (e.target.value === "Common") {
+      setSemester("1");
+    }
+  };
+
+  const handleSemesterChange = (e) => {
+    setSemester(e.target.value);
+    localStorage.setItem("semester", e.target.value);
+  };
+
+  const handleNotesTypeChange = (e) => {
+    setDocumentType(e.target.value);
+    localStorage.setItem("documentType", e.target.value);
+  };  
+  
+useEffect(() => {
+    const savedBranch = localStorage.getItem("branch");
+    const savedSemester = localStorage.getItem("semester");
+    const savedDocumentType = localStorage.getItem("documentType");
+    if (savedBranch) setBranch(savedBranch);
+    if (savedSemester) setSemester(savedSemester);
+    if (savedDocumentType) setDocumentType(savedDocumentType);
+}, []);
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center pt-24 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6 lg:px-8 bg-[#0a0f1d] overflow-hidden">
       {/* Background Decorations */}
@@ -144,7 +171,7 @@ function UploadPage() {
         <div className="mb-8">
           <Link
             to="/"
-            className="inline-flex items-center text-blue-400 hover:text-blue-300 font-bold transition-all group"
+            className="inline-flex items-center text-blue-400 hover:text-blue-300 font-bold transition-all group cursor-pointer"
           >
             <FaArrowLeft className="mr-2 transform group-hover:-translate-x-1 transition-transform" />
             Return to Nexus
@@ -177,7 +204,7 @@ function UploadPage() {
                   <div className="relative">
                     <select
                       value={branch}
-                      onChange={(e) => setBranch(e.target.value)}
+                      onChange={(e) => handleBranchChange(e)}
                       className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
                     >
                       <option
@@ -231,7 +258,7 @@ function UploadPage() {
                   <div className="relative">
                     <select
                       value={semester}
-                      onChange={(e) => setSemester(e.target.value)}
+                      onChange={(e) => handleSemesterChange(e)}
                       className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white focus:ring-2 focus:ring-blue-500 outline-none appearance-none"
                     >
                       <option
@@ -279,7 +306,7 @@ function UploadPage() {
                 <div className="relative">
                   <select
                     value={documentType}
-                    onChange={(e) => setDocumentType(e.target.value)}
+                    onChange={(e) => handleNotesTypeChange(e)}
                     className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all cursor-pointer appearance-none"
                   >
                     {["Notes", "PYQ", "Other Materials"].map((type) => (
@@ -382,7 +409,7 @@ function UploadPage() {
 
             <button
               type="submit"
-              className={`w-full py-4 sm:py-5 px-8 bg-blue-600 text-white font-black rounded-2xl shadow-[0_0_30px_rgba(37,99,235,0.3)] hover:shadow-[0_0_50px_rgba(37,99,235,0.5)] hover:bg-blue-500 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-3 active:scale-[0.98] ${uploading ? "opacity-70 cursor-not-allowed" : ""}`}
+              className={`w-full py-4 sm:py-5 px-8 bg-blue-600 text-white font-black rounded-2xl shadow-[0_0_30px_rgba(37,99,235,0.3)] hover:shadow-[0_0_50px_rgba(37,99,235,0.5)] hover:bg-blue-500 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-3 active:scale-[0.98] cursor-pointer ${uploading ? "opacity-70 cursor-not-allowed" : ""}`}
               disabled={uploading}
             >
               {uploading ? (

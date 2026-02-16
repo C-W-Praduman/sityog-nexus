@@ -3,37 +3,34 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import API_BASE_URL from '../config/api';
+import { Link, useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
+
 
 const Dashboard = () => {
-  const { token, user, setUser, logout } = useAuth();
+  const { user, setUser, token, logout } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ name: '', mobile: '', rollNo: '', branch: '', semester: '' });
-
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!token) return setLoading(false);
-      try {
-        const res = await axios.get(`${API_BASE_URL}/api/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setProfile(res.data.user);
-        setForm({
-          name: res.data.user.name || '',
-          mobile: res.data.user.mobile || '',
-          rollNo: res.data.user.rollNo || '',
-          branch: res.data.user.branch || '',
-          semester: res.data.user.semester || ''
-        });
-      } catch (err) {
-        // Error handled silently, user sees default message
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProfile();
-  }, [token]);
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    
+    // Use user from auth context (already synced from Firebase)
+    setProfile(user);
+    setForm({
+      name: user.name || '',
+      mobile: user.mobile || '',
+      rollNo: user.rollNo || '',
+      branch: user.branch || '',
+      semester: user.semester || ''
+    });
+
+    setLoading(false);
+  }, [user]);
 
   if (loading) return <div className="min-h-[60vh] flex items-center justify-center">Loading...</div>;
   if (!profile) return <div className="min-h-[60vh] flex items-center justify-center">No profile available.</div>;
@@ -41,28 +38,37 @@ const Dashboard = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
+  
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
+    
     try {
-      const res = await axios.put(`${API_BASE_URL}/api/auth/me`, form, {
+      const res = await axios.put(`${API_BASE_URL}/api/user/profile`, form, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setProfile(res.data.user);
+      
+      const updatedUser = res.data.user;
+      setProfile(updatedUser);
+      setForm({
+        name: updatedUser.name || '',
+        mobile: updatedUser.mobile || '',
+        rollNo: updatedUser.rollNo || '',
+        branch: updatedUser.branch || '',
+        semester: updatedUser.semester || ''
+      });
+
       // update auth context so navbar reflects new name
-      if (typeof setUser === 'function') setUser(res.data.user);
-      // update local user object stored in localStorage (name change reflected)
-      const stored = localStorage.getItem('user');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        parsed.name = res.data.user.name;
-        localStorage.setItem('user', JSON.stringify(parsed));
-      }
+      if (typeof setUser === 'function') setUser(updatedUser);
+      
+      // update local user object stored in localStorage
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      
       toast.success('Profile updated');
     } catch (err) {
-      // Error handled via toast
+      console.error('Update profile error:', err);
       toast.error('Failed to update profile');
     } finally {
       setSaving(false);
@@ -71,6 +77,16 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-[70vh] py-30 px-4 sm:px-6 lg:px-8 bg-[#071026] text-white">
+
+    <div className="mb-8">
+              <Link
+                to="/"
+                className="inline-flex items-center text-blue-400 hover:text-blue-300 font-bold transition-all group cursor-pointer"
+              >
+                <FaArrowLeft className="mr-2 transform group-hover:-translate-x-1 transition-transform" />
+                Return to Nexus
+              </Link>
+            </div>
       <div className="max-w-3xl  mx-auto bg-[#0d1726] p-8 sm:p-12 rounded-lg shadow-lg">
         <h1 className="text-2xl font-bold mb-4">User Dashboard</h1>
         <p className="text-sm text-gray-300 mb-6">Welcome back, <strong>{profile.name}</strong>. Manage your public profile information below.</p>
@@ -109,8 +125,8 @@ const Dashboard = () => {
           </div>
 
           <div className="flex items-center gap-3 pt-4">
-            <button disabled={saving} type="submit" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">{saving ? 'Saving...' : 'Update Profile'}</button>
-            <button type="button" onClick={logout} className="px-4 py-3 border border-gray-700 rounded text-gray-200">Logout</button>
+            <button disabled={saving} type="submit" className=" cursor-pointer px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded text-white font-bold">{saving ? 'Saving...' : 'Update Profile'}</button>
+            <button type="button" onClick={logout} className="cursor-pointer px-4 py-3 border border-gray-700 rounded text-gray-200">Logout</button>
           </div>
         </form>
       </div>

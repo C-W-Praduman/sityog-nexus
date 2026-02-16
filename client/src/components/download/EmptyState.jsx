@@ -9,7 +9,7 @@ const EmptyState = ({ branch, semester }) => (
 </div>
 <h3 className="text-2xl font-black text-white mb-3">No Uploads Found</h3>
 <p className="text-gray-400 mb-8">No notes for {branch} {semester}</p>
-<Link to="/upload" className="px-8 py-4 bg-blue-600 text-white font-black rounded-2xl">Contribute</Link>
+<Link to="/upload" className="px-8 py-4 bg-blue-600 text-white font-black rounded-2xl cursor-pointer">Contribute</Link>
 </div>
 );
 
