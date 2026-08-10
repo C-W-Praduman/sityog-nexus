@@ -1,5 +1,7 @@
 # Sityog Notes Nexus
 
+## Live Link: https://sityog-nexus.vercel.app/
+
 A production-ready full-stack application for sharing student notes and previous year questions (PYQs) for SITYOG students.
 
 ## ✨ Features

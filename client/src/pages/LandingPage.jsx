@@ -106,13 +106,8 @@ function LandingPage() {
     <div className="flex flex-col w-full overflow-hidden">
       
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] lg:min-h-[95vh] flex items-center pt-24 pb-16 lg:pt-32 lg:pb-24 px-4 sm:px-6 lg:px-8 bg-[#0a0f1d] overflow-hidden">
-        {/* Futuristic Grid/Pattern Background */}
+      <section className="relative min-h-[90vh] lg:min-h-[95vh] flex items-center pt-24 pb-16 lg:pt-32 lg:pb-24 px-4 sm:px-6 lg:px-8  overflow-hidden">
         
-        
-        {/* Glowing Orbs */}
-        <div className="absolute top-0 right-0 -translate-y-1/4 translate-x-1/4 w-200 h-200 bg-blue-600/20 rounded-full blur-[150px] pointer-events-none" />
-        <div className="absolute bottom-0 left-0 translate-y-1/4 -translate-x-1/4 w-150 h-150 bg-purple-600/20 rounded-full blur-[130px] pointer-events-none" />
 
         <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center justify-between gap-16 relative z-10">
           <div className="flex-1 text-center lg:text-left space-y-10 animate-fade-in-up">
@@ -132,14 +127,14 @@ function LandingPage() {
                 className="group relative px-6 py-4 sm:px-10 sm:py-5 bg-blue-600 text-white font-black rounded-2xl shadow-[0_0_30px_rgba(37,99,235,0.4)] hover:shadow-[0_0_50px_rgba(37,99,235,0.6)] hover:bg-blue-500 transition-all duration-300 hover:-translate-y-2 text-center cursor-pointer"
               >
                 <span className="relative z-10 flex items-center justify-center gap-3">
-                  <FaFileUpload className="text-xl sm:text-2xl" /> SHARE KNOWLEDGE
+                  <FaFileUpload className="text-xl sm:text-2xl" /> Upload Notes
                 </span>
               </Link>
               <Link 
                 to="/download" 
                 className="group px-6 py-4 sm:px-10 sm:py-5 bg-white/5 text-white font-black rounded-2xl border-2 border-white/10 backdrop-blur-md hover:bg-white/10 transition-all duration-300 hover:-translate-y-2 flex items-center justify-center gap-3 text-center cursor-pointer"
               >
-                <FaDownload className="text-lg sm:text-xl group-hover:animate-bounce" /> ACCESS VAULT
+                <FaDownload className="text-lg sm:text-xl group-hover:animate-bounce" /> Explore Notes
               </Link>
             </div>
 
@@ -375,13 +370,13 @@ function LandingPage() {
                 to="/upload" 
                 className="px-8 sm:px-14 py-4 sm:py-6 bg-linear-to-r from-blue-600 to-indigo-700 text-white font-black rounded-2xl sm:rounded-3xl hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_0_40px_rgba(37,99,235,0.3)] uppercase tracking-widest text-base sm:text-lg text-center cursor-pointer"
               >
-                Upload Artifact
+                Upload Notes
               </Link>
               <Link 
                 to="/download" 
                 className="px-8 sm:px-14 py-4 sm:py-6 bg-white/5 text-white font-black rounded-2xl sm:rounded-3xl border-2 border-white/10 hover:bg-white/10 transition-all duration-300 hover:scale-105 uppercase tracking-widest text-base sm:text-lg backdrop-blur-xl text-center cursor-pointer"
               >
-                Explore Vault
+                Explore Notes
               </Link>
             </div>
           </div>

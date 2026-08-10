@@ -365,7 +365,7 @@ useEffect(() => {
 
               <div>
                 <label className="block text-xs font-bold text-blue-400 uppercase tracking-widest mb-3 ml-1">
-                  Upload Attachment
+                  Upload Notes
                 </label>
                 <div
                   onClick={() => fileInputRef.current.click()}
