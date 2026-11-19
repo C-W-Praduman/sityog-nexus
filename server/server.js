@@ -235,7 +235,6 @@ app.post('/api/auth/sync-user', async (req, res) => {
         firebaseUid: uid
       });
     } else {
-      if (name) user.name = name;
       user.firebaseUid = uid;
       user.isVerified = true;
     }
