@@ -165,9 +165,7 @@ app.post(
 );
 
 // --- AUTH ROUTES ---
-// const authController = require("./controllers/authController");
-
-// Note: Firebase handles authentication (register, login, password reset)
+// Firebase handles authentication (register, login, password reset)
 
 // Get current authenticated user profile
 app.get('/api/auth/me', authenticateToken, (req, res) => {
@@ -235,6 +233,9 @@ app.post('/api/auth/sync-user', async (req, res) => {
         firebaseUid: uid
       });
     } else {
+      if (user.isBlocked) {
+        return res.status(403).json({ error: "Your account has been blocked. Please contact the administrator." });
+      }
       user.firebaseUid = uid;
       user.isVerified = true;
     }
@@ -369,8 +370,8 @@ app.put('/api/admin/users/:id', authenticateToken, isHost, async (req, res) => {
 });
 
 // Start server
-// module.exports = app;
+const PORT = process.env.PORT || 3000;
 
-app.listen(3000, () => {
-  console.log(`Server running on port ${process.env.PORT || 3000}`);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

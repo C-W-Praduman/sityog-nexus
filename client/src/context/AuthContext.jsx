@@ -5,7 +5,6 @@ import {
   signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
-  updateProfile,
   sendPasswordResetEmail
 } from 'firebase/auth';
 import axios from 'axios';
@@ -45,15 +44,24 @@ export const AuthProvider = ({ children }) => {
                     localStorage.setItem('token', idToken); // Backup for some pages using localStorage
                 } catch (err) {
                     console.error('Failed to sync user:', err);
-                    // Even if backend sync fails, keep a minimal user object from Firebase so UI functions
-                    setUser({
-                        name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-                        email: firebaseUser.email,
-                        uid: firebaseUser.uid,
-                        isSyncing: false,
-                        syncError: true
-                    });
-                    toast.error('Session sync failed. Some features may be limited.');
+                    if (err.response?.status === 403) {
+                        await signOut(auth);
+                        setUser(null);
+                        setToken(null);
+                        localStorage.removeItem('user');
+                        localStorage.removeItem('token');
+                        toast.error(err.response.data?.error || 'Your account has been blocked.');
+                    } else {
+                        // Even if backend sync fails, keep a minimal user object from Firebase so UI functions
+                        setUser({
+                            name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+                            email: firebaseUser.email,
+                            uid: firebaseUser.uid,
+                            isSyncing: false,
+                            syncError: true
+                        });
+                        toast.error('Session sync failed. Some features may be limited.');
+                    }
                 }
             } else {
                 setUser(null);
@@ -86,6 +94,7 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
         setToken(null);
         localStorage.removeItem('user');
+        localStorage.removeItem('token');
     };
 
     return (

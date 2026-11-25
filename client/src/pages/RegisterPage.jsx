@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
-import { signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import toast from 'react-hot-toast';
-import API_BASE_URL from '../config/api';
-import axios from 'axios';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({ email: '', password: '', confirmPassword: '' });

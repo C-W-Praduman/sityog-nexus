@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FaEye, FaEyeSlash, FaArrowLeft } from 'react-icons/fa';
-import { signInWithPopup, GoogleAuthProvider, updateProfile } from 'firebase/auth';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { auth } from '../config/firebase';
 import toast from 'react-hot-toast';
-import API_BASE_URL from '../config/api';
-import axios from 'axios';
 
 const LoginPage = () => {
     const [formData, setFormData] = useState({ email: '', password: '' });
@@ -46,7 +44,11 @@ const LoginPage = () => {
             toast.success("Welcome back!", { duration: 2000 });
             navigate('/upload');
         } catch (error) {
-            if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+            if (
+                error.code === 'auth/user-not-found' ||
+                error.code === 'auth/wrong-password' ||
+                error.code === 'auth/invalid-credential'
+            ) {
                 toast.error('Invalid email or password');
             } else {
                 toast.error(error.message || 'Login failed');
